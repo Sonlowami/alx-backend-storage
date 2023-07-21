@@ -39,12 +39,12 @@ class Cache:
 
     def __init__(self):
         """create an instance of redis client"""
-        self._redis: Cache = redis.Redis()
+        self._redis = redis.Redis()
         self._redis.flushdb()
 
     @call_history
     @count_calls
-    def store(self, data: Union[int, str, bytes, float]) -> str:
+    def store(self, data: Union[str, bytes, int, float]) -> str:
         """Stores data into redis"""
         new_id = str(uuid4())
         if self._redis.set(new_id, data):
@@ -66,16 +66,18 @@ class Cache:
         """Retrieve an int from a bytes object"""
         return int(bytes_data)
 
-    def replay(self, method: Callable) -> None:
-        """Make a replay of history of method calls"""
-        count: int = int(self._redis.get(method.__qualname__))
-        inputkey: str = method.__qualname__ + ":inputs"
-        outkey: str = method.__qualname__ + ":outputs"
-        print("{} was called {} times:".format(method.__qualname__, count))
-        ins: List = list(self._redis.lrange(inputkey, 0, -1))
-        outs: List = list(self._redis.lrange(outkey, 0, -1))
-        history: List = list(zip(ins, outs))
-        for pair in history:
-            print("{}(*{}) -> {}".format(method.__qualname__,
-                                         pair[0].decode('utf-8'),
-                                         pair[1].decode('utf-8')))
+
+def replay(method: Callable) -> None:
+    """Make a replay of history of method calls"""
+    _redis = redis.Redis()
+    count: int = int(_redis.get(method.__qualname__))
+    inputkey: str = method.__qualname__ + ":inputs"
+    outkey: str = method.__qualname__ + ":outputs"
+    print("{} was called {} times:".format(method.__qualname__, count))
+    ins: List = list(_redis.lrange(inputkey, 0, -1))
+    outs: List = list(_redis.lrange(outkey, 0, -1))
+    history: List = list(zip(ins, outs))
+    for pair in history:
+        print("{}(*{}) -> {}".format(method.__qualname__,
+                                     pair[0].decode('utf-8'),
+                                     pair[1].decode('utf-8')))
