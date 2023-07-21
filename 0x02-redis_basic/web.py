@@ -7,7 +7,10 @@ import redis
 def get_page(url: str) -> str:
     """Get a page and return it's content"""
     _redis = redis.Redis()
+    countkey: str = 'count:{}'.format(url)
+    contentkey: str = '{}'.format(url)
     page: str = requests.get(url)
-    key: str = 'count:{}'.format(url)
-    _redis.incr(key)
+    _redis.set(contentkey, page)
+    _redis.expire(contentkey, 10)
+    _redis.incr(countkey)
     return page
