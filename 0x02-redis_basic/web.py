@@ -9,9 +9,5 @@ def get_page(url: str) -> str:
     _redis = redis.Redis()
     page: str = requests.get(url)
     key: str = 'count:{}'.format(url)
-    if not _redis.get(key):
-        _redis.set(key, 1)
-        _redis.expire(key, 10)
-    else:
-        _redis.set(key, int(_redis.get(key)) + 1)
+    _redis.incr(key)
     return page

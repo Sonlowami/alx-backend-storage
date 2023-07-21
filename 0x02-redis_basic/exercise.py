@@ -12,10 +12,7 @@ def count_calls(method: Callable) -> Callable:
     def decorator(self, *args, **kwargs):
         """store the count in redis"""
         name: str = method.__qualname__
-        if self._redis.get(name):
-            self._redis.set(name, int(self._redis.get(name)) + 1)
-        else:
-            self._redis.set(name, 1)
+        self._redis.incr(name)
         return method(self, *args, **kwargs)
     return decorator
 
